@@ -9,6 +9,7 @@
       background: #222;
       display: block;
       margin: 0 auto;
+      touch-action: manipulation; /* Mejora la respuesta táctil */
     }
   </style>
 </head>
@@ -34,15 +35,33 @@ let player = {
 let obstacles = [];
 let frameCount = 0;
 let gameOver = false;
+let score = 0;
 
-// Entrada
-document.addEventListener('keydown', e => {
-  if ((e.code === 'Space' || e.code === 'ArrowUp') && player.grounded && !gameOver) {
+// Función para saltar
+function jump() {
+  if (player.grounded && !gameOver) {
     player.velocityY = player.jumpStrength;
     player.grounded = false;
   }
+}
+
+// Entrada teclado
+document.addEventListener('keydown', e => {
+  if ((e.code === 'Space' || e.code === 'ArrowUp')) {
+    jump();
+  }
   if (gameOver && e.code === 'Enter') restartGame();
 });
+
+// Entrada táctil
+canvas.addEventListener('touchstart', function(e) {
+  e.preventDefault(); // Evita el scroll en móviles
+  if (gameOver) {
+    restartGame();
+  } else {
+    jump();
+  }
+}, { passive: false });
 
 function restartGame() {
   player.y = 300;
@@ -50,6 +69,7 @@ function restartGame() {
   obstacles = [];
   frameCount = 0;
   gameOver = false;
+  score = 0;
   loop();
 }
 
@@ -85,7 +105,8 @@ function loop() {
       x: canvas.width,
       y: canvas.height - 20 - height,
       width: 20,
-      height: height
+      height: height,
+      passed: false // Para la puntuación
     });
   }
 
@@ -95,6 +116,12 @@ function loop() {
     const obs = obstacles[i];
     obs.x -= 5;
     ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+
+    // Sumar puntuación si el obstáculo pasa al jugador
+    if (!obs.passed && obs.x + obs.width < player.x) {
+      obs.passed = true;
+      score++;
+    }
 
     // Colisión
     if (
@@ -106,12 +133,17 @@ function loop() {
       gameOver = true;
       ctx.fillStyle = '#fff';
       ctx.font = '30px Arial';
-      ctx.fillText('¡Game Over! Presiona ENTER', 200, 200);
+      ctx.fillText('¡Game Over! Toca para reiniciar', 170, 200);
     }
   }
 
   // Eliminar obstáculos fuera de pantalla
   obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
+
+  // Dibujar puntuación
+  ctx.fillStyle = '#fff';
+  ctx.font = '24px Arial';
+  ctx.fillText('Puntuación: ' + score, 20, 40);
 
   frameCount++;
 }
