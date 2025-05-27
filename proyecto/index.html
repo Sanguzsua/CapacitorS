@@ -11,9 +11,27 @@
       margin: 0 auto;
       touch-action: manipulation; /* Mejora la respuesta táctil */
     }
+    #rotateMsg {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #111;
+      color: #fff;
+      z-index: 10;
+      justify-content: center;
+      align-items: center;
+      font-size: 2em;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
+<div id="rotateMsg">
+  Por favor, gira tu dispositivo para jugar en horizontal.
+</div>
 <canvas id="gameCanvas" width="800" height="400"></canvas>
 
 <script>
@@ -148,6 +166,25 @@ function loop() {
   frameCount++;
 }
 loop();
+
+// Mostrar mensaje de rotación en dispositivos móviles
+function checkOrientation() {
+  const rotateMsg = document.getElementById('rotateMsg');
+  // window.orientation está deprecado, mejor usar window.innerWidth/innerHeight
+  if (window.innerWidth < window.innerHeight) {
+    // Vertical
+    rotateMsg.style.display = 'flex';
+    canvas.style.display = 'none';
+  } else {
+    // Horizontal
+    rotateMsg.style.display = 'none';
+    canvas.style.display = 'block';
+  }
+}
+
+window.addEventListener('resize', checkOrientation);
+window.addEventListener('orientationchange', checkOrientation);
+checkOrientation();
 </script>
 </body>
 </html>
